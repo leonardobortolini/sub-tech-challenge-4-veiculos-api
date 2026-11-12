@@ -1,0 +1,31 @@
+services:
+  api:
+    build: .
+    container_name: veiculos-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://veiculos:veiculos@db:5432/veiculos
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: veiculos-db
+    environment:
+      POSTGRES_USER: veiculos
+      POSTGRES_PASSWORD: veiculos
+      POSTGRES_DB: veiculos
+    ports:
+      - "5432:5432"
+    volumes:
+      - veiculos_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veiculos -d veiculos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  veiculos_data:

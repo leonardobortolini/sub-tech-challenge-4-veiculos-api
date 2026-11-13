@@ -1,3 +1,6 @@
+
+from unittest.mock import MagicMock
+
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -7,8 +10,10 @@ client = TestClient(app)
 
 
 def test_health_check_success(monkeypatch):
-    def mock_connect():
-        return None
+    mock_connection = MagicMock()
+
+    mock_connect = MagicMock()
+    mock_connect.return_value.__enter__.return_value = mock_connection
 
     monkeypatch.setattr(
         "app.main.engine.connect",
@@ -23,6 +28,8 @@ def test_health_check_success(monkeypatch):
         "service": "veiculos-api",
         "database": "connected",
     }
+
+    mock_connection.execute.assert_called_once()
 
 
 def test_health_check_database_error(monkeypatch):

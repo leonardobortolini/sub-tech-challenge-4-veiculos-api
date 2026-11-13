@@ -74,6 +74,7 @@ class RepositorioVeiculoSQLAlchemy(RepositorioVeiculo):
         modelo.ano = veiculo.ano
         modelo.cor = veiculo.cor
         modelo.preco = veiculo.preco
+        modelo.status = veiculo.status.value
 
         try:
             self.banco.commit()

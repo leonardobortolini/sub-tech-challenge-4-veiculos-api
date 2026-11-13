@@ -21,13 +21,13 @@ from app.interfaces.schemas.veiculo import (
 )
 
 
-router = APIRouter(
+veiculos_router = APIRouter(
     prefix="/veiculos",
     tags=["Veículos"],
 )
 
 
-@router.post(
+@veiculos_router.post(
     "",
     response_model=RespostaVeiculo,
     status_code=status.HTTP_201_CREATED,
@@ -42,7 +42,7 @@ def cadastrar_veiculo(
     return caso_de_uso.executar(**dados.model_dump())
 
 
-@router.get(
+@veiculos_router.get(
     "/{veiculo_id}",
     response_model=RespostaVeiculo,
 )
@@ -63,7 +63,7 @@ def consultar_veiculo(
         ) from erro
 
 
-@router.put(
+@veiculos_router.put(
     "/{veiculo_id}",
     response_model=RespostaVeiculo,
 )

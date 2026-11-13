@@ -15,7 +15,6 @@ class VeiculoNaoPodeSerEditado(Exception):
 
 
 class CadastrarVeiculo:
-
     def __init__(self, repositorio: RepositorioVeiculo):
         self.repositorio = repositorio
 
@@ -27,7 +26,6 @@ class CadastrarVeiculo:
         cor: str,
         preco: Decimal,
     ) -> Veiculo:
-
         veiculo = Veiculo(
             id=uuid4(),
             marca=marca,
@@ -42,12 +40,10 @@ class CadastrarVeiculo:
 
 
 class ConsultarVeiculo:
-
     def __init__(self, repositorio: RepositorioVeiculo):
         self.repositorio = repositorio
 
     def executar(self, veiculo_id: UUID) -> Veiculo:
-
         veiculo = self.repositorio.consultar_por_id(veiculo_id)
 
         if veiculo is None:
@@ -57,7 +53,6 @@ class ConsultarVeiculo:
 
 
 class EditarVeiculo:
-
     def __init__(self, repositorio: RepositorioVeiculo):
         self.repositorio = repositorio
 
@@ -70,7 +65,6 @@ class EditarVeiculo:
         cor: str,
         preco: Decimal,
     ) -> Veiculo:
-
         veiculo = self.repositorio.consultar_por_id(veiculo_id)
 
         if veiculo is None:
@@ -88,3 +82,14 @@ class EditarVeiculo:
         veiculo.preco = preco
 
         return self.repositorio.editar(veiculo)
+
+
+class ListarVeiculos:
+    def __init__(self, repositorio: RepositorioVeiculo):
+        self.repositorio = repositorio
+
+    def executar(
+        self,
+        status: StatusVeiculo | None = None,
+    ) -> list[Veiculo]:
+        return self.repositorio.listar(status)

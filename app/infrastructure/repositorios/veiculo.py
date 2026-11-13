@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app.domain.entidades.veiculo import Veiculo
 from app.domain.enums.status_veiculo import StatusVeiculo
@@ -9,7 +10,6 @@ from app.infrastructure.modelos.veiculo import ModeloVeiculo
 
 
 class RepositorioVeiculoSQLAlchemy(RepositorioVeiculo):
-
     def __init__(self, banco: Session):
         self.banco = banco
 
@@ -17,7 +17,6 @@ class RepositorioVeiculoSQLAlchemy(RepositorioVeiculo):
         self,
         modelo: ModeloVeiculo,
     ) -> Veiculo:
-
         return Veiculo(
             id=modelo.id,
             marca=modelo.marca,
@@ -31,7 +30,6 @@ class RepositorioVeiculoSQLAlchemy(RepositorioVeiculo):
         )
 
     def cadastrar(self, veiculo: Veiculo) -> Veiculo:
-
         modelo = ModeloVeiculo(
             id=veiculo.id,
             marca=veiculo.marca,
@@ -54,7 +52,6 @@ class RepositorioVeiculoSQLAlchemy(RepositorioVeiculo):
             raise
 
     def consultar_por_id(self, veiculo_id: UUID) -> Veiculo | None:
-
         modelo = self.banco.get(ModeloVeiculo, veiculo_id)
 
         if modelo is None:
@@ -63,7 +60,6 @@ class RepositorioVeiculoSQLAlchemy(RepositorioVeiculo):
         return self._converter_para_entidade(modelo)
 
     def editar(self, veiculo: Veiculo) -> Veiculo:
-
         modelo = self.banco.get(ModeloVeiculo, veiculo.id)
 
         if modelo is None:
@@ -85,3 +81,18 @@ class RepositorioVeiculoSQLAlchemy(RepositorioVeiculo):
         except Exception:
             self.banco.rollback()
             raise
+
+    def listar(
+        self,
+        status: StatusVeiculo | None = None,
+    ) -> list[Veiculo]:
+        consulta = select(ModeloVeiculo)
+
+        if status is not None:
+            consulta = consulta.where(ModeloVeiculo.status == status.value)
+
+        consulta = consulta.order_by(ModeloVeiculo.preco.asc())
+
+        modelos = self.banco.scalars(consulta).all()
+
+        return [self._converter_para_entidade(modelo) for modelo in modelos]

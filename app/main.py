@@ -3,7 +3,10 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.infrastructure.database import engine
-from app.interfaces.rotas import veiculos_router
+from app.interfaces.rotas import (
+    pagamentos_router,
+    veiculos_router,
+)
 
 
 app = FastAPI(
@@ -11,6 +14,7 @@ app = FastAPI(
 )
 
 app.include_router(veiculos_router)
+app.include_router(pagamentos_router)
 
 
 @app.get("/health", tags=["Saúde"])

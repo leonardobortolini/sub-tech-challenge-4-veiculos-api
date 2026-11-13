@@ -6,7 +6,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.infrastructure.database import Base, get_db
-from app.infrastructure.modelos import ModeloVeiculo # noqa: F401
+from app.infrastructure.modelos import (
+    ModeloPagamento,  # noqa: F401
+    ModeloVeiculo,  # noqa: F401
+)
 from app.main import app
 
 

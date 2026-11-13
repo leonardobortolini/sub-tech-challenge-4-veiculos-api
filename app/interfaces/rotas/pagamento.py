@@ -1,4 +1,3 @@
-
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,6 +25,11 @@ from app.interfaces.schemas.pagamento import (
     RespostaPagamento,
     SolicitacaoPagamento,
     WebhookPagamento,
+)
+from app.infrastructure.config import configuracoes
+from app.infrastructure.integracoes.vendas_api import (
+    ErroIntegracaoVendas,
+    GatewayVendasHTTP,
 )
 
 
@@ -119,10 +123,19 @@ def processar_webhook_pagamento(
     )
 
     try:
-        return caso_de_uso.executar(
+        pagamento = caso_de_uso.executar(
             pagamento_id=dados.pagamento_id,
             novo_status=StatusPagamento(dados.status),
         )
+
+        gateway_vendas = GatewayVendasHTTP(configuracoes.vendas_api_url)
+
+        gateway_vendas.notificar_pagamento(
+            pagamento_id=pagamento.id,
+            status=pagamento.status,
+        )
+
+        return pagamento
 
     except PagamentoNaoEncontrado:
         raise HTTPException(
@@ -135,3 +148,13 @@ def processar_webhook_pagamento(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(erro),
         )
+
+    except ErroIntegracaoVendas as erro:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                "Pagamento processado, mas não foi possível "
+                "notificar a API de vendas. Reenvie o webhook. "
+                f"Detalhe: {erro}"
+            ),
+        ) from erro

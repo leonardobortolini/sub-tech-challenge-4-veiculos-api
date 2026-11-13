@@ -7,6 +7,7 @@ from app.application.casos_de_uso.veiculo import (
     CadastrarVeiculo,
     ConsultarVeiculo,
     EditarVeiculo,
+    ListarVeiculos,
     VeiculoNaoEncontrado,
     VeiculoNaoPodeSerEditado,
 )
@@ -19,12 +20,27 @@ from app.interfaces.schemas.veiculo import (
     CadastroVeiculo,
     RespostaVeiculo,
 )
+from app.domain.enums.status_veiculo import StatusVeiculo
 
 
 veiculos_router = APIRouter(
     prefix="/veiculos",
     tags=["Veículos"],
 )
+
+
+@veiculos_router.get(
+    "",
+    response_model=list[RespostaVeiculo],
+)
+def listar_veiculos(
+    status: StatusVeiculo | None = None,
+    banco: Session = Depends(get_db),
+):
+    repositorio = RepositorioVeiculoSQLAlchemy(banco)
+    caso_de_uso = ListarVeiculos(repositorio)
+
+    return caso_de_uso.executar(status)
 
 
 @veiculos_router.post(

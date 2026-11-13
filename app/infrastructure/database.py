@@ -3,16 +3,16 @@ from collections.abc import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from app.infrastructure.config import settings
+from app.infrastructure.config import configuracoes
 
 
 engine = create_engine(
-    settings.database_url,
+    configuracoes.database_url,
     pool_pre_ping=True,
 )
 
 
-SessionLocal = sessionmaker(
+SessaoLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
@@ -24,9 +24,11 @@ class Base(DeclarativeBase):
 
 
 def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
+
+    banco = SessaoLocal()
 
     try:
-        yield db
+        yield banco
+
     finally:
-        db.close()
+        banco.close()

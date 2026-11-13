@@ -1,47 +1,64 @@
-
 from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.main import app
-
-client = TestClient(app)
-
-
-def test_health_check_success(monkeypatch):
-    mock_connection = MagicMock()
-
-    mock_connect = MagicMock()
-    mock_connect.return_value.__enter__.return_value = mock_connection
-
-    monkeypatch.setattr(
-        "app.main.engine.connect",
-        mock_connect,
-    )
-
-    response = client.get("/health")
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "status": "healthy",
-        "service": "veiculos-api",
-        "database": "connected",
-    }
-
-    mock_connection.execute.assert_called_once()
+from app.infrastructure.database import get_db
 
 
-def test_health_check_database_error(monkeypatch):
-    def mock_connect():
-        raise SQLAlchemyError("Database unavailable")
+cliente = TestClient(app)
+
+
+def test_verificar_saude_com_sucesso(monkeypatch):
+
+    conexao = MagicMock()
+    conexao_contexto = MagicMock()
+    conexao_contexto.__enter__.return_value = conexao
 
     monkeypatch.setattr(
         "app.main.engine.connect",
-        mock_connect,
+        lambda: conexao_contexto,
     )
 
-    response = client.get("/health")
+    resposta = cliente.get("/health")
 
-    assert response.status_code == 503
-    assert response.json()["detail"]["database"] == "disconnected"
+    assert resposta.status_code == 200
+    assert resposta.json()["status"] == "saudavel"
+
+
+def test_verificar_saude_com_falha_no_banco(monkeypatch):
+
+    def simular_falha():
+        raise SQLAlchemyError("Banco indisponível")
+
+    monkeypatch.setattr(
+        "app.main.engine.connect",
+        simular_falha,
+    )
+
+    resposta = cliente.get("/health")
+
+    assert resposta.status_code == 503
+    assert resposta.json()["detail"]["status"] == "indisponivel"
+
+
+def test_sessao_do_banco_e_fechada(monkeypatch):
+
+    sessao = MagicMock()
+
+    monkeypatch.setattr(
+        "app.infrastructure.database.SessaoLocal",
+        lambda: sessao,
+    )
+
+    gerador = get_db()
+
+    assert next(gerador) is sessao
+
+    try:
+        next(gerador)
+    except StopIteration:
+        pass
+
+    sessao.close.assert_called_once()

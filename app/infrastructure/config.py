@@ -1,7 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
+class Configuracoes(BaseSettings):
+
     database_url: str = (
         "postgresql+psycopg://veiculos:veiculos@localhost:5432/veiculos"
     )
@@ -11,4 +12,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+configuracoes = Configuracoes()
